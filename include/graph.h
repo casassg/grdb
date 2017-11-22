@@ -6,6 +6,8 @@
 #include "schema.h"
 #include "tuple.h"
 #include "vertexid.h"
+#include <sys/types.h>
+
 
 
 struct vertex {
