@@ -3,4 +3,4 @@ mkdir -p build
 cd build
 cmake ..
 make
-./grdb
+./src/cli/grdb
