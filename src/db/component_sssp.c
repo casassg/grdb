@@ -43,7 +43,7 @@ component_sssp(
 
     Array a;
     initArray(&a, 5);
-    read_all_edges(c->se, c);
+    read_all_edges(c);
     struct edge *edge = c->e;
     while (edge != NULL) {
         int found_id1 = FALSE;

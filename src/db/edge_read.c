@@ -69,61 +69,69 @@ edge_read(edge_t e, schema_t schema, int fd) {
 
 
 ssize_t
-read_all_edges(schema_t schema, component_t c) {
-    off_t off;
-    ssize_t len, size;
-    vertexid_t id1, id2;
-    char buf[sizeof(vertexid_t) << 1];
+read_all_edges(component_t c) {
+//    Create buffer for id reading
+    char ids_buf[sizeof(vertexid_t) << 1];
 
-
+//    Generate edge filename and open file
     char filename[BUFSIZE];
     memset(filename, 0, BUFSIZE);
     sprintf(filename, "%s/%d/%d/e", grdbdir, gno, cno);
     int fd = open(filename, O_RDONLY);
 
-    if (schema == NULL)
-        size = 0;
-    else
-        size = schema_size(schema);
+//    Checking that edge schema is loaded
+    if (c->se == NULL) {
+        printf("Edge schema needs to be loaded before reading edges");
+        return -1;
+    }
 
-    int total_size = (size + (sizeof(vertexid_t) << 1));
+//    Pre-calculating edge schema size and total edge size
+    ssize_t size = schema_size(c->se);
+    ssize_t total_size = (size + (sizeof(vertexid_t) << 1));
+//    Initializing edge structure
     struct edge *prev;
     prev = NULL;
     struct edge tmp;
     struct edge *e = &tmp;
     edge_init(e);
+//    Saving first edge address into component
     c->e = e;
 
-    /* Search for edge in current component */
-    for (off = 0;; off += total_size) {
-        len = read(fd, buf, sizeof(vertexid_t) << 1);
-
+    for (;;) {
+//        Read ids
+        ssize_t len = read(fd, ids_buf, sizeof(vertexid_t) << 1);
         if (len == 0) {
+            close(fd);
             return 0;
         }
         if (len < 0) {
+            close(fd);
             return -1;
         }
-        id1 = *((vertexid_t *) buf);
-        id2 = *((vertexid_t *) (buf + sizeof(vertexid_t)));
 
-        e->id1 = id1;
-        e->id2 = id2;
-        tuple_init(&(e->tuple), schema);
-
+//        Assign ids
+        e->id1 = *((vertexid_t *) ids_buf);
+        e->id2 = *((vertexid_t *) (ids_buf + sizeof(vertexid_t)));
+//        Initialize edge tuple
+        tuple_init(&(e->tuple), c->se);
         memset(e->tuple->buf, 0, size);
+//        Read edge tuple
         len = read(fd, e->tuple->buf, size);
         if (len < 0) {
+            close(fd);
             return -1;
         }
+
+//        Fix pointers for iteration
         if (prev != NULL) {
             prev->next = e;
 
         }
         e->prev = prev;
         e->next = NULL;
-        prev = e;
 
+//        Prepare new edge to be read
+        prev = e;
         e = (struct edge *) malloc(total_size);
         edge_init(e);
     }
