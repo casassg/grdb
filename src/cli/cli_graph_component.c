@@ -139,8 +139,19 @@ cli_graph_component_sssp(char *cmdline, int *pos)
 	total_weight = (-1);
 	result = component_sssp(&c, v1, v2, &n, &total_weight, &path);
 	if (result < 0) {
-		/* Failure... */
-	}
+		printf("No path found\n");
+
+	}else{
+        printf("Weight: %d\n",total_weight);
+        printf("Nodes: %d\n",n);
+        printf("Path: %d ", path[0]);
+        for (int i = 1; i<n;i++){
+            printf("-> %d ",path[i]);
+        }
+        printf("\n");
+    }
+
+
 }
 
 void

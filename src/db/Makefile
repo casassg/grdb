@@ -4,6 +4,8 @@ OBJS =	component.o		\
 	component_project.o	\
 	component_select.o	\
 	component_join.o	\
+	priority_queue.o \
+	dinamic_array.o \
 	component_sssp.o	\
 	edge.o			\
 	edge_read.o		\

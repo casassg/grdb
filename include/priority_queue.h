@@ -12,6 +12,7 @@
 typedef struct {
     int priority;
     vertexid_t id;
+    long prev;
 } node_t;
 
 typedef struct {
@@ -20,9 +21,9 @@ typedef struct {
     int size;
 } heap_t;
 
-void push_heap(heap_t *h, int priority, vertexid_t id);
+void push_heap(heap_t *h, int priority, vertexid_t id, long prev);
 
-vertexid_t pop_heap(heap_t *h, int *priority);
+vertexid_t pop_heap(heap_t *h, int *priority, long *prev);
 
 heap_t *create_heap();
 

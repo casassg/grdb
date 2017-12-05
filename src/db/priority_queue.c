@@ -4,7 +4,7 @@
 
 #include <priority_queue.h>
 
-void push_heap(heap_t *h, int priority, vertexid_t id) {
+void push_heap(heap_t *h, int priority, vertexid_t id, long prev) {
     if (h->len + 1 >= h->size) {
         h->size = h->size ? h->size * 2 : 4;
         h->nodes = (node_t *)realloc(h->nodes, h->size * sizeof (node_t));
@@ -18,16 +18,18 @@ void push_heap(heap_t *h, int priority, vertexid_t id) {
     }
     h->nodes[i].priority = priority;
     h->nodes[i].id = id;
+    h->nodes[i].prev = prev;
     h->len++;
 }
 
-vertexid_t pop_heap (heap_t *h, int* priority) {
+vertexid_t pop_heap (heap_t *h, int* priority, long *prev) {
     int i, j, k;
     if (!h->len) {
         return NULL;
     }
     vertexid_t data = h->nodes[1].id;
-    priority =  &h->nodes[1].priority;
+    *priority =  h->nodes[1].priority;
+    *prev = h->nodes[1].prev;
     h->nodes[1] = h->nodes[h->len];
     h->len--;
     i = 1;

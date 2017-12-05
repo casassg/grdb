@@ -25,11 +25,13 @@ component_sssp(
      * use for your weight function
      */
     struct attribute *weight_attribute = c->se->attrlist;
+    int off_attr_weight = 0;
 //    Start with 2 * vertexid size as the edge file starts with 2 id files
     while (weight_attribute) {
         if (weight_attribute->bt == INTEGER) {
             break;
         }
+        off_attr_weight += base_types_len[weight_attribute->bt];
         weight_attribute = weight_attribute->next;
     }
     if (!weight_attribute) {
@@ -41,37 +43,35 @@ component_sssp(
     sprintf(filename, "%s/%d/%d/e", grdbdir, gno, cno);
     c->efd = open(filename, O_RDONLY);
 
-    Array a;
-    initArray(&a, 5);
+    Array mapping_array;
+    initArray(&mapping_array, 5);
     read_all_edges(c);
     struct edge *edge = c->e;
     while (edge != NULL) {
         int found_id1 = FALSE;
         int found_id2 = FALSE;
         int i;
-        for (i = 0; i < a.used; i++) {
-            if (a.array[i] == edge->id1) {
+        for (i = 0; i < mapping_array.used; i++) {
+            if (mapping_array.array[i] == edge->id1)
                 found_id1 = TRUE;
-            }
-            if (a.array[i] == edge->id2) {
+            if (mapping_array.array[i] == edge->id2)
                 found_id2 = TRUE;
-            }
         }
 
         if (!found_id1) {
-            insertArray(&a, edge->id1);
+            insertArray(&mapping_array, edge->id1);
         }
-
-
         if (!found_id2) {
-            insertArray(&a, edge->id2);
+            insertArray(&mapping_array, edge->id2);
         }
-        edge = edge->next;
 
+        edge = edge->next;
     }
-    int i;
-    for (i = 0; i < a.used; i++) {
-        printf("%d\n", a.array[i]);
+
+    long prev[mapping_array.used];
+
+    for (int i = 0; i < mapping_array.used; i++) {
+        prev[i] = -1;
     }
 
     /*
@@ -88,12 +88,36 @@ component_sssp(
         if (current == destination) {
             break;
         }
-
-        current = pop_heap(h, &dist_curr);
-
+        edge = c->e;
+        while (edge != NULL) {
+            int weight = tuple_get_int(edge->tuple->buf + off_attr_weight);
+            if (edge->id1 == current) {
+                push_heap(h, dist_curr + weight, edge->id2, edge->id1);
+            }
+            edge = edge->next;
+        }
+        long prev_curr = -1;
+        current = pop_heap(h, &dist_curr, &prev_curr);
+        prev[current] = prev_curr;
     }
+
     if (current) {
-        total_weight = &dist_curr;
+        *total_weight = dist_curr;
+        *n = 1;
+        long exp = prev[current];
+        while (exp != -1) {
+            *n += 1;
+            exp = prev[exp];
+        }
+        *path = malloc(sizeof(vertexid_t)*(*n));
+        exp = prev[current];
+        (*path)[(*n)-1]=current;
+        int j = (*n)-2;
+        while (exp != -1) {
+            (*path)[j]=exp;
+            exp = prev[exp];
+            j--;
+        }
         return 0;
     }
 
