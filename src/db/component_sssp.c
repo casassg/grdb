@@ -7,6 +7,8 @@
 #include <dinamic_array.h>
 #include <curses.h>
 
+long reverse_index(Array *mapping_array, vertexid_t current);
+
 /* Place the code for your Dijkstra implementation in this file */
 
 
@@ -83,6 +85,7 @@ component_sssp(
     heap_t *h = create_heap();
     vertexid_t current = origin;
     int dist_curr = 0;
+    long c_id = -1;
 
     while (current) {
         if (current == destination) {
@@ -98,38 +101,40 @@ component_sssp(
         }
         long prev_curr = -1;
         current = pop_heap(h, &dist_curr, &prev_curr);
-        prev[current] = prev_curr;
+        c_id = reverse_index(&mapping_array, current);
+        prev[c_id] = prev_curr;
     }
 
     if (current) {
         *total_weight = dist_curr;
-        *n = 1;
-        long exp = prev[current];
+        long exp = prev[c_id];
+        long exp_id = reverse_index(&mapping_array,exp);
+        Array p_array;
+        initArray(&p_array, 5);
+        insertArray(&p_array, current);
         while (exp != -1) {
-            *n += 1;
-            exp = prev[exp];
+            insertArray(&p_array, exp);
+            exp = prev[exp_id];
+            exp_id = reverse_index(&mapping_array,exp);
         }
-        *path = malloc(sizeof(vertexid_t)*(*n));
-        exp = prev[current];
-        (*path)[(*n)-1]=current;
-        int j = (*n)-2;
-        while (exp != -1) {
-            (*path)[j]=exp;
-            exp = prev[exp];
-            j--;
+        *n = p_array.used;
+        *path = malloc(sizeof(vertexid_t) * (*n));
+        for (int i = 0; i < p_array.used; i++) {
+            (*path)[p_array.used - i - 1] = p_array.array[i];
         }
         return 0;
     }
 
-
-
-
-
-
-
-
-
-
     /* Change this as needed */
     return (-1);
+}
+
+long reverse_index(Array *mapping_array, vertexid_t current) {
+    int i;
+    for (i = 0; i < (*mapping_array).used; i++) {
+        if ((*mapping_array).array[i] == current) {
+            break;
+        }
+    }
+    return i;
 }
