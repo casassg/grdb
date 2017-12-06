@@ -13,13 +13,7 @@ long reverse_index(Array *mapping_array, vertexid_t current);
 
 
 int
-component_sssp(
-        component_t c,
-        vertexid_t origin,
-        vertexid_t destination,
-        int *n,
-        int *total_weight,
-        vertexid_t **path) {
+component_sssp(component_t c, vertexid_t origin, vertexid_t destination, int *n, int *total_weight, vertexid_t **path) {
 
 
     /*
@@ -40,14 +34,9 @@ component_sssp(
         return -1;
     }
 
-    char filename[BUFSIZE];
-    memset(filename, 0, BUFSIZE);
-    sprintf(filename, "%s/%d/%d/e", grdbdir, gno, cno);
-    c->efd = open(filename, O_RDONLY);
 
     Array mapping_array;
     initArray(&mapping_array, 5);
-    read_all_edges(c);
     struct edge *edge = c->e;
     while (edge != NULL) {
         int found_id1 = FALSE;
@@ -108,14 +97,14 @@ component_sssp(
     if (current) {
         *total_weight = dist_curr;
         long exp = prev[c_id];
-        long exp_id = reverse_index(&mapping_array,exp);
+        long exp_id = reverse_index(&mapping_array, exp);
         Array p_array;
         initArray(&p_array, 5);
         insertArray(&p_array, current);
         while (exp != -1) {
             insertArray(&p_array, exp);
             exp = prev[exp_id];
-            exp_id = reverse_index(&mapping_array,exp);
+            exp_id = reverse_index(&mapping_array, exp);
         }
         *n = p_array.used;
         *path = malloc(sizeof(vertexid_t) * (*n));

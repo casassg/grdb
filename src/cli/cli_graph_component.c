@@ -137,7 +137,12 @@ cli_graph_component_sssp(char *cmdline, int *pos)
 	/* Setup and run Dijkstra */
 	n = (-1);
 	total_weight = (-1);
-	result = component_sssp(&c, v1, v2, &n, &total_weight, &path);
+    int res = read_all_edges(&c);
+    if (res<0){
+        printf("Edges not ready\n");
+    }
+
+    result = component_sssp(&c, v1, v2, &n, &total_weight, &path);
 	if (result < 0) {
 		printf("No path found\n");
 

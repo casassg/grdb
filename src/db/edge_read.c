@@ -68,7 +68,7 @@ edge_read(edge_t e, schema_t schema, int fd) {
 }
 
 
-ssize_t
+int
 read_all_edges(component_t c) {
 //    Create buffer for id reading
     char ids_buf[sizeof(vertexid_t) << 1];
@@ -78,6 +78,10 @@ read_all_edges(component_t c) {
     memset(filename, 0, BUFSIZE);
     sprintf(filename, "%s/%d/%d/e", grdbdir, gno, cno);
     int fd = open(filename, O_RDONLY);
+
+    if (fd < 0) {
+        return -1;
+    }
 
 //    Checking that edge schema is loaded
     if (c->se == NULL) {
@@ -91,13 +95,15 @@ read_all_edges(component_t c) {
 //    Initializing edge structure
     struct edge *prev;
     prev = NULL;
-    struct edge tmp;
-    struct edge *e = &tmp;
-    edge_init(e);
 //    Saving first edge address into component
-    c->e = e;
 
     for (;;) {
+        struct edge *e = malloc(sizeof(struct edge));
+        edge_init(e);
+        if (c->e == NULL)
+            c->e = e;
+//    Saving first edge address into component
+
 //        Read ids
         ssize_t len = read(fd, ids_buf, sizeof(vertexid_t) << 1);
         if (len == 0) {
@@ -132,8 +138,7 @@ read_all_edges(component_t c) {
 
 //        Prepare new edge to be read
         prev = e;
-        e = (struct edge *) malloc(total_size);
-        edge_init(e);
+
     }
     return 0;
 
