@@ -2,4 +2,5 @@
 .idea/
 build/
 .DS_Store
-doc/*.docx
+src/cli/db
+src/db/*.a
