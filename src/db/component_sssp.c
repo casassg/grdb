@@ -60,9 +60,11 @@ component_sssp(component_t c, vertexid_t origin, vertexid_t destination, int *n,
     }
 
     long prev[mapping_array.used];
+    int visited[mapping_array.used];
 
     for (int i = 0; i < mapping_array.used; i++) {
         prev[i] = -1;
+        visited[i] = FALSE;
     }
 
     /*
@@ -74,24 +76,29 @@ component_sssp(component_t c, vertexid_t origin, vertexid_t destination, int *n,
     heap_t *h = create_heap();
     vertexid_t current = origin;
     int dist_curr = 0;
-    long c_id = -1;
+    long c_id = reverse_index(&mapping_array, current);
 
     while (current) {
         if (current == destination) {
             break;
         }
         edge = c->e;
-        while (edge != NULL) {
-            int weight = tuple_get_int(edge->tuple->buf + off_attr_weight);
-            if (edge->id1 == current) {
-                push_heap(h, dist_curr + weight, edge->id2, edge->id1);
+        if (!visited[c_id]) {
+            visited[c_id] = TRUE;
+            while (edge != NULL) {
+                int weight = tuple_get_int(edge->tuple->buf + off_attr_weight);
+                if (edge->id1 == current) {
+                    push_heap(h, dist_curr + weight, edge->id2, edge->id1);
+                }
+                edge = edge->next;
             }
-            edge = edge->next;
         }
         long prev_curr = -1;
         current = pop_heap(h, &dist_curr, &prev_curr);
         c_id = reverse_index(&mapping_array, current);
-        prev[c_id] = prev_curr;
+        if (!visited[c_id]) {
+            prev[c_id] = prev_curr;
+        }
     }
 
     if (current) {
