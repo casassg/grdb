@@ -90,10 +90,10 @@ void component_print(component_t c, int with_tuples);
 
 /*
  * Project a component from the input component c.  The resulting
- * component has only the attributes listed in the attrlist.
+ * component has only the attributes listed in the v_attr for vertexs and a_attr for edges.
  */
 component_t
-component_project(component_t c, attribute_t attrlist);
+component_project(component_t c, string_pool_t v_attr, string_pool_t e_attr);
 
 /*
  * Select a component from the input compnent c

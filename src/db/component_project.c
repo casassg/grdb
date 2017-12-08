@@ -14,9 +14,12 @@ void bufdump(char *buf, int size);
 #endif
 
 component_t
-component_project(component_t c, attribute_t attrlist)
+component_project(component_t c, string_pool_t v_attr,string_pool_t e_attr)
 {
-//	Attributes for edges
+    struct component c_projected;
+    component_init(&c_projected);
+
+
 
 //	a
 	/* XXX Unlink the old vertex file from its temporary file name */

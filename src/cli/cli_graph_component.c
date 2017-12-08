@@ -159,6 +159,123 @@ cli_graph_component_sssp(char *cmdline, int *pos)
 
 }
 
+
+static void
+cli_graph_component_project(char *cmdline, int *pos) {
+    char buff[BUFSIZE];
+
+    struct component c;
+    /* Initialize component */
+    component_init(&c);
+
+    /* Load enums */
+    int fd = enum_file_open(grdbdir, gno, cno);
+    if (fd >= 0) {
+        enum_list_init(&(c.el));
+        enum_list_read(&(c.el), fd);
+        close(fd);
+    }
+
+
+//    Read attributes for vertexs
+	string_pool_t v_attr_pool;
+	string_pool_init(&v_attr_pool);
+
+	char v_attr[BUFSIZE];
+	memset(v_attr, 0, BUFSIZE);
+	nextarg(cmdline, pos, ";", v_attr);
+
+    if (strlen(v_attr)!=0){
+        /* Load the vertex schema */
+        memset(buff, 0, BUFSIZE);
+        sprintf(buff, "%s/%d/%d/sv", grdbdir, gno, cno);
+
+        fd = open(buff, O_RDONLY);
+        if (fd < 0) {
+            printf("Component must have a vertex schema\n");
+            return;
+        }
+        c.sv = schema_read(fd, c.el);
+        close(fd);
+    }
+
+
+	int pos_v = 0;
+	while (c.sv!=NULL){
+		memset(buff, 0, BUFSIZE);
+
+		nextarg(v_attr, &pos_v, " ", buff);
+		if (strlen(buff) == 0){
+			break;
+		}
+        attribute_t exists = schema_find_attr_by_name(c.sv, buff);
+        if (exists==NULL){
+            printf("Attribute %s not found on vertex schema\n", buff);
+            return;
+        }
+		string_pool_insert(&v_attr_pool,buff);
+
+
+	}
+    printf("Vertex attributes: ");
+	string_pool_print(v_attr_pool);
+    printf("\n");
+
+// Skip the delimiter
+    (*pos)+=1;
+
+
+//    Read attributes for edges
+    char e_attr[BUFSIZE];
+    memset(e_attr, 0, BUFSIZE);
+    nextarg(cmdline, pos, "", e_attr);
+
+    string_pool_t a_attr_pool;
+    string_pool_init(&a_attr_pool);
+
+    if (strlen(e_attr)!=0) {
+
+        /* Load the edge schema */
+        memset(buff, 0, BUFSIZE);
+        sprintf(buff, "%s/%d/%d/se", grdbdir, gno, cno);
+
+        fd = open(buff, O_RDONLY);
+        if (fd < 0) {
+            printf("Component must have an edge schema\n");
+            return;
+        }
+        c.se = schema_read(fd, c.el);
+        close(fd);
+    }
+
+
+    int pos_a = 0;
+    while(c.se!=NULL) {
+        memset(buff, 0, BUFSIZE);
+        nextarg(e_attr, &pos_a, " ", buff);
+        if (strlen(buff) == 0){
+            break;
+        }
+        attribute_t exists = schema_find_attr_by_name(c.se, buff);
+        if (exists==NULL){
+            printf("Attribute %s not found on edge schema\n", buff);
+            return;
+        }
+
+        string_pool_insert(&a_attr_pool,buff);
+    }
+    printf("Edges attributes: ");
+    string_pool_print(a_attr_pool);
+    printf("\n");
+
+
+
+
+
+    int result = component_project(&c, v1, v2, &n, &total_weight, &path);
+
+}
+
 void
 cli_graph_component(char *cmdline, int *pos)
 {
@@ -170,8 +287,10 @@ cli_graph_component(char *cmdline, int *pos)
 	if (strcmp(s, "new") == 0 || strcmp(s, "n") == 0)
 		cli_graph_component_new();
 
-	else if (strcmp(s, "sssp") == 0)
+	else if (strcmp(s, "sssp") == 0){
 		cli_graph_component_sssp(cmdline, pos);
+    } else if (strcmp(s, "project") == 0 || strcmp(s, "p") == 0)
+        cli_graph_component_project(cmdline, pos);
 
 	else if (strlen(s) == 0) {
 		char s[BUFSIZE];
