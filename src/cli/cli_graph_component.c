@@ -270,9 +270,15 @@ cli_graph_component_project(char *cmdline, int *pos) {
 
 
 
+    int new_component = cli_graph_next_cno();
+    if (new_component < 0) {
+#if _DEBUG
+        printf("cli_graph_component_project: bad next cno\n");
+#endif
+        return;
+    }
 
-
-    int result = component_project(&c, v1, v2, &n, &total_weight, &path);
+    int result = component_project(&c, v_attr_pool,a_attr_pool, new_component);
 
 }
 
