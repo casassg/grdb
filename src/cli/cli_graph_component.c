@@ -274,8 +274,12 @@ cli_graph_component_project(char *cmdline, int *pos) {
         return;
     }
 
-    int result = component_project(&c, v_attr_pool,a_attr_pool, new_component);
-
+    int result = component_project(&c, v_attr_pool, a_attr_pool, new_component);
+	if (result==0){
+		printf("New component %d.%d created with specified projection from component %d.%d", gno, new_component, gno, cno);
+	} else {
+		printf("Could project component");
+	}
 }
 
 void
