@@ -185,23 +185,21 @@ cli_graph_component_project(char *cmdline, int *pos) {
 	memset(v_attr, 0, BUFSIZE);
 	nextarg(cmdline, pos, ";", v_attr);
 
-    if (strlen(v_attr)!=0){
-        /* Load the vertex schema */
-        memset(buff, 0, BUFSIZE);
-        sprintf(buff, "%s/%d/%d/sv", grdbdir, gno, cno);
+    /* Load the vertex schema */
+    memset(buff, 0, BUFSIZE);
+    sprintf(buff, "%s/%d/%d/sv", grdbdir, gno, cno);
 
-        fd = open(buff, O_RDONLY);
-        if (fd < 0) {
-            printf("Component must have a vertex schema\n");
-            return;
-        }
-        c.sv = schema_read(fd, c.el);
-        close(fd);
+    fd = open(buff, O_RDONLY | O_CREAT, 0644);
+    if (fd < 0 && strlen(v_attr)!=0) {
+        printf("Component must have a vertex schema\n");
+        return;
     }
+    c.sv = schema_read(fd, c.el);
+    close(fd);
 
 
 	int pos_v = 0;
-	while (c.sv!=NULL){
+	while (strlen(v_attr)!=0){
 		memset(buff, 0, BUFSIZE);
 
 		nextarg(v_attr, &pos_v, " ", buff);
@@ -233,24 +231,22 @@ cli_graph_component_project(char *cmdline, int *pos) {
     string_pool_t a_attr_pool;
     string_pool_init(&a_attr_pool);
 
-    if (strlen(e_attr)!=0) {
 
-        /* Load the edge schema */
-        memset(buff, 0, BUFSIZE);
-        sprintf(buff, "%s/%d/%d/se", grdbdir, gno, cno);
+    /* Load the edge schema */
+    memset(buff, 0, BUFSIZE);
+    sprintf(buff, "%s/%d/%d/se", grdbdir, gno, cno);
 
-        fd = open(buff, O_RDONLY);
-        if (fd < 0) {
-            printf("Component must have an edge schema\n");
-            return;
-        }
-        c.se = schema_read(fd, c.el);
-        close(fd);
+    fd = open(buff, O_RDONLY | O_CREAT, 0644);
+    if (fd < 0 && strlen(e_attr)!=0) {
+        printf("Component must have an edge schema\n");
+        return;
     }
+    c.se = schema_read(fd, c.el);
+    close(fd);
 
 
     int pos_a = 0;
-    while(c.se!=NULL) {
+    while(strlen(e_attr)!=0) {
         memset(buff, 0, BUFSIZE);
         nextarg(e_attr, &pos_a, " ", buff);
         if (strlen(buff) == 0){
